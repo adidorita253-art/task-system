@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Task Management System</title>
+    <style>
+        :root { --primary: #2b6cb0; --success: #48bb78; --warning: #ed8936; --danger: #e53e3e; --bg: #f7fafc; --text: #2d3748; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .app-container { max-width: 1000px; margin: 0 auto; }
+        header { background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { margin: 0; font-size: 24px; }
+        .auth-badge { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .panel { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--primary); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 14px; transition: background 0.2s; }
+        button:hover { background: #1a365d; }
+        .filters { display: flex; gap: 10px; margin-bottom: 15px; }
+        .task-list { display: flex; flex-direction: column; gap: 12px; }
+        .task-card { background: #f8fafc; border-left: 5px solid var(--primary); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .task-card.High { border-left-color: var(--danger); }
+        .task-card.Medium { border-left-color: var(--warning); }
+        .task-card.Low { border-left-color: var(--success); }
+        .task-card.Completed { opacity: 0.6; text-decoration: line-through; border-left-color: #cbd5e0; }
+        .task-info h3 { margin: 0 0 5px 0; font-size: 16px; }
+        .task-info p { margin: 0; font-size: 13px; color: #718096; }
+        .actions { display: flex; gap: 8px; }
+        .btn-small { padding: 6px 12px; font-size: 12px; width: auto; }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #9b2c2c; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #22543d; }
+        .analytics { display: flex; justify-content: space-around; margin-bottom: 20px; background: #edf2f7; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-box h4 { margin: 0; color: #4a5568; font-size: 12px; text-transform: uppercase; }
+        .stat-box p { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Section 8: Cloud User Authentication Badge Simulation -->
+        <header>
+            <h1>Task Management System</h1>
+            <div class="auth-badge" id="authBadge">👤 session: Cloud_User_Authenticated</div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Left Side Panel: Form Operations (Create Task) -->
+            <div class="panel">
+                <h2>Create New Task</h2>
+                <div class="form-group">
+                    <label>Task Description</label>
+                    <input type="text" id="taskTitle" placeholder="e.g., Complete Cloud Architecture Report">
+                </div>
+                <!-- Section 10: Task Categorization Options -->
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="taskCategory">
+                        <option value="Academic">Academic</option>
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                    </select>
+                </div>
+                <!-- Section 10: Task Priority Levels -->
+                <div class="form-group">
+                    <label>Priority Level</label>
+                    <select id="taskPriority">
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+                <!-- Section 11: Reminders & Due Dates -->
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+                <!-- Section 9: CRUD Creation Trigger -->
+                <button onclick="createTask()">Save Task to Cloud Database</button>
+            </div>
+
+            <!-- Right Side Panel: Analytics Dashboard & Real-Time Ingestion List -->
+            <div class="panel">
+                <h2>Real-Time Cloud Database Analytics</h2>
+                <!-- Section 12: Data Visualization Metrics Bar -->
+                <div class="analytics">
+                    <div class="stat-box"><h4>Total Tasks</h4><p id="statTotal">0</p></div>
+                    <div class="stat-box"><h4>Completed</h4><p id="statCompleted">0</p></div>
+                    <div class="stat-box"><h4>Pending</h4><p id="statPending">0</p></div>
+                </div>
+
+                <h2>Your Cloud Storage Objects</h2>
+                <!-- Section 10: Category Filters UI -->
+                <div class="filters">
+                    <select id="filterCategory" onchange="renderTasks()">
+                        <option value="All">All Categories</option>
+                        <option value="Academic">Academic Only</option>
+                        <option value="Work">Work Only</option>
+                        <option value="Personal">Personal Only</option>
+                    </select>
+                </div>
+                <div class="task-list" id="taskListContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Section 7: Cloud Database Collection Schema Mock Data Layer (Syncs with LocalStorage)
+        let cloudDatabase = JSON.parse(localStorage.getItem('cloudTasks')) || [
+            { id: 1, title: 'Finalize Case Study 2 Report', category: 'Academic', priority: 'High', date: '2026-03-10', status: 'Pending' },
+            { id: 2, title: 'Deploy secure S3 storage bucket', category: 'Work', priority: 'Medium', date: '2026-03-15', status: 'Completed' }
+        ];
+
+        function saveToCloud() {
+            localStorage.setItem('cloudTasks', JSON.stringify(cloudDatabase));
+            renderTasks();
+        }
+
+        // Section 9: CRUD Operations - CREATE Functionality
+        function createTask() {
+            const title = document.getElementById('taskTitle').value;
+            const category = document.getElementById('taskCategory').value;
+            const priority = document.getElementById('taskPriority').value;
+            const date = document.getElementById('taskDueDate').value;
+
+            // Input Validation Check Step
+            if (!title || !date) { alert('Please validate your inputs! Fill in all description and date blocks.'); return; }
+
+            const newTask = { id: Date.now(), title, category, priority, date, status: 'Pending' };
+            cloudDatabase.push(newTask);
+            document.getElementById('taskTitle').value = '';
+            saveToCloud();
+        }
+
+        // Section 9: CRUD Operations - UPDATE Functionality (Toggle Status)
+        function toggleTask(id) {
+            cloudDatabase = cloudDatabase.map(task => task.id === id ? { ...task, status: task.status === 'Completed' ? 'Pending' : 'Completed' } : task);
+            saveToCloud();
+        }
+
+        // Section 9: CRUD Operations - DELETE Functionality
+        function deleteTask(id) {
+            cloudDatabase = cloudDatabase.filter(task => task.id !== id);
+            saveToCloud();
+        }
+
+        // Section 7 & 9: CRUD Operations - READ Functionality & UI Synchronizer
+        function renderTasks() {
+            const container = document.getElementById('taskListContainer');
+            const filter = document.getElementById('filterCategory').value;
+            container.innerHTML = '';
+            
+            let total = 0, completed = 0, pending = 0;
+
+            cloudDatabase.forEach(task => {
+                if (filter !== 'All' && task.category !== filter) return;
+
+                total++;
+                if (task.status === 'Completed') completed++; else pending++;
+
+                const card = document.createElement('div');
+                card.className = `task-card ${task.priority} ${task.status}`;
+                card.innerHTML = `
+                    <div class="task-info">
+                        <h3>${task.title}</h3>
+                        <p>📂 ${task.category} | ⏳ Priority: ${task.priority} | 📅 Due: ${task.date}</p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-small btn-success" onclick="toggleTask(${task.id})">✔</button>
+                        <button class="btn-small btn-danger" onclick="deleteTask(${task.id})">🗑</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Section 12: Real-time calculation updater metrics
+            document.getElementById('statTotal').innerText = total;
